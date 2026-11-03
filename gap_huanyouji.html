@@ -1834,8 +1834,11 @@ function drawImgCover(x, img, px, py, w, h){
   var dw = iw * sc, dh = ih * sc;
   x.drawImage(img, px + (w - dw) / 2, py + (h - dh) / 2, dw, dh);
 }
-function hexA(hx, a){
-  hx = String(hx).replace('#', '');
+function hexA(c, a){
+  c = String(c).trim();
+  var m = c.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  if(m) return 'rgba(' + m[1] + ',' + m[2] + ',' + m[3] + ',' + a + ')';
+  var hx = c.replace('#', '');
   if(hx.length === 3) hx = hx[0] + hx[0] + hx[1] + hx[1] + hx[2] + hx[2];
   return 'rgba(' + parseInt(hx.substr(0, 2), 16) + ',' + parseInt(hx.substr(2, 2), 16) + ',' + parseInt(hx.substr(4, 2), 16) + ',' + a + ')';
 }
