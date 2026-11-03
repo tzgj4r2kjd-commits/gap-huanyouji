@@ -189,7 +189,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v1.7.0</span>
+  <span class="ver">v1.8.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
@@ -1786,7 +1786,7 @@ function startAuto(){
   autoTimer = setInterval(function(){
     if(!state.diary.content || state.diary.reveal >= 15){
       clearInterval(autoTimer); autoTimer = null;
-      dreamFinish();
+      /* 到 15 段时 dreamNext 内部已触发 dreamFinish，这里不再重复调用（防重复存档/重复下载） */
       return;
     }
     dreamNext();
@@ -2319,7 +2319,7 @@ function mixHex(a, b, t){
 function skyPal(slot, now){
   var pal = SKY_PAL[slot];
   if(skyT.to === slot && skyT.to !== skyT.from){
-    var t = Math.min(1, (now - skyT.t0) / 900);
+    var t = Math.max(0, Math.min(1, (now - skyT.t0) / 900));
     var e = t * t * (3 - 2 * t);
     var p0 = SKY_PAL[skyT.from];
     return pal.map(function(c, i){ return mixHex(p0[i], c, e); });
