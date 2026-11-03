@@ -128,13 +128,14 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v0.9.0</span>
+  <span class="ver">v1.1.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
   <button class="hbtn" onclick="loadDemo()">载入示例</button>
   <button class="hbtn" onclick="replayDemo()">重播演示</button>
   <button class="hbtn warn" onclick="resetAll()">清空数据</button>
+  <button class="hbtn" id="sndBtn" onclick="toggleSound()">声音 关</button>
 </header>
 
 <main>
@@ -1340,6 +1341,7 @@ function setStatus(id, s){
     state.status[id] = {s:s, ts: s==="done" ? Date.now() : (cur?cur.ts||0:0)};
   }
   saveState(); renderAll();
+  sndSfx("ding");
   var remain = (!same && state.status[id]) ? s : "";
   refreshPopupBtns(id, remain);
 }
@@ -1625,6 +1627,7 @@ function dreamNext(){
   var d = state.diary;
   if(!d.content || d.reveal >= 15) return;
   d.reveal++;
+  sndSfx("flip"); sndAmbFor();
   var idx = d.reveal - 1, slot = idx % 5, day = Math.floor(idx / 5) + 1;
   var seg = d.content[day + "-" + slot];
   var sp = byId[seg.sp];
@@ -1769,6 +1772,7 @@ function dreamFinish(){
     a.download = "白日梦·" + (state.diary.country || "旅行") + ".png";
     a.href = cv2.toDataURL("image/png");
     a.click();
+    sndSfx("stamp");
   }
 }
 function renderDreamCard(){
@@ -2091,6 +2095,7 @@ function drawActorFor(e, x, W, H, now){
 /* ================= 起飞过渡：纸飞机 + 航迹云 + 镜头跟随 ================= */
 var planeAnim = null;
 function startPlaneAnim(from, dest){
+  sndSfx("takeoff");
   planeAnim = {t0: performance.now(), dur: 2000,
     sx: 80, sy: (cv.height / dpr) * 0.84,
     dest: dest, trail: [],
@@ -2545,6 +2550,249 @@ ensureLoop();
 window.addEventListener("resize", function(){
   resize();
 });
+/* ================= 声音层（WebAudio 程序化合成 · 无音频文件 · 默认静音） ================= */
+var sndOn = false;
+var actx = null;
+var amb = null;
+function sndCtx(){
+  if(!actx){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    actx = new AC();
+  }
+  if(actx.state === "suspended"){ try{ actx.resume(); }catch(e){} }
+  return actx;
+}
+function sndNoiseBuf(sec){
+  var c = actx;
+  var b = c.createBuffer(1, Math.max(1, Math.floor(c.sampleRate * sec)), c.sampleRate);
+  var d = b.getChannelData(0);
+  for(var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  return b;
+}
+function sndStopAmb(){
+  if(!amb) return;
+  var a = amb; amb = null;
+  try{ a.master.gain.setTargetAtTime(0.0001, actx.currentTime, 0.25); }catch(e){}
+  setTimeout(function(){
+    a.timers.forEach(function(t){ clearTimeout(t); });
+    a.nodes.forEach(function(n){
+      try{ if(n.stop) n.stop(); }catch(e){}
+      try{ if(n.disconnect) n.disconnect(); }catch(e){}
+    });
+  }, 900);
+}
+function sndAmbience(kind){
+  if(!sndOn || !sndCtx()) return;
+  if(amb && amb.kind === kind) return;
+  sndStopAmb();
+  var c = actx, t = c.currentTime;
+  var master = c.createGain();
+  master.gain.setValueAtTime(0.0001, t);
+  master.connect(c.destination);
+  amb = {kind: kind, master: master, nodes: [], timers: []};
+  var a = amb;
+  var keep = function(n){ a.nodes.push(n); return n; };
+  var noiseSrc = function(sec){
+    var bs = c.createBufferSource();
+    bs.buffer = sndNoiseBuf(sec || 2.4); bs.loop = true;
+    keep(bs); return bs;
+  };
+  var lfo = function(rate, depth, param){
+    var o = c.createOscillator(); o.frequency.value = rate;
+    var g = c.createGain(); g.gain.value = depth;
+    o.connect(g); g.connect(param);
+    keep(o); o.start();
+  };
+  var ambTimer = function(fn, every, jitter){
+    var run = function(){
+      if(amb !== a || !sndOn) return;
+      try{ fn(); }catch(e){}
+      a.timers.push(setTimeout(run, every + Math.random() * jitter));
+    };
+    a.timers.push(setTimeout(run, 400 + Math.random() * 700));
+  };
+  var vol = 0.035;
+  var src, flt, g;
+  if(kind === "birds"){
+    src = noiseSrc(2.4);
+    flt = c.createBiquadFilter(); flt.type = "bandpass"; flt.frequency.value = 480; flt.Q.value = 0.5;
+    g = c.createGain(); g.gain.value = 0.5;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    lfo(0.22, 0.22, g.gain);
+    src.start();
+    ambTimer(function(){
+      var o = c.createOscillator(), og = c.createGain(), t0 = actx.currentTime;
+      var f0 = 2100 + Math.random() * 1500;
+      o.type = "sine";
+      o.frequency.setValueAtTime(f0, t0);
+      o.frequency.exponentialRampToValueAtTime(f0 * (0.55 + Math.random() * 0.9), t0 + 0.11);
+      og.gain.setValueAtTime(0.0001, t0);
+      og.gain.exponentialRampToValueAtTime(0.045, t0 + 0.02);
+      og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      o.connect(og); og.connect(master);
+      o.start(t0); o.stop(t0 + 0.2);
+      keep(o); keep(og);
+    }, 850, 1300);
+    vol = 0.045;
+  } else if(kind === "market"){
+    src = noiseSrc(3.2);
+    flt = c.createBiquadFilter(); flt.type = "lowpass"; flt.frequency.value = 340;
+    g = c.createGain(); g.gain.value = 0.8;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    lfo(0.5, 0.3, g.gain);
+    src.start();
+    ambTimer(function(){
+      var o = c.createOscillator(), og = c.createGain(), t0 = actx.currentTime;
+      o.type = "triangle";
+      o.frequency.setValueAtTime(220 + Math.random() * 160, t0);
+      og.gain.setValueAtTime(0.0001, t0);
+      og.gain.exponentialRampToValueAtTime(0.03, t0 + 0.05);
+      og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
+      o.connect(og); og.connect(master);
+      o.start(t0); o.stop(t0 + 0.35);
+      keep(o); keep(og);
+    }, 1500, 2200);
+    vol = 0.04;
+  } else if(kind === "waves"){
+    src = noiseSrc(4);
+    flt = c.createBiquadFilter(); flt.type = "lowpass"; flt.frequency.value = 520;
+    g = c.createGain(); g.gain.value = 0.45;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    lfo(0.11, 0.35, g.gain);
+    src.start();
+    vol = 0.05;
+  } else if(kind === "crickets"){
+    var dr = c.createOscillator(); dr.type = "sine"; dr.frequency.value = 68;
+    var dg = c.createGain(); dg.gain.value = 0.16;
+    dr.connect(dg); dg.connect(master);
+    keep(dr); dr.start();
+    ambTimer(function(){
+      var o = c.createOscillator(), og = c.createGain(), t0 = actx.currentTime;
+      o.type = "square";
+      o.frequency.value = 4100 + Math.random() * 300;
+      og.gain.setValueAtTime(0.0001, t0);
+      og.gain.exponentialRampToValueAtTime(0.012, t0 + 0.015);
+      og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
+      var bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 4200; bp.Q.value = 8;
+      o.connect(bp); bp.connect(og); og.connect(master);
+      o.start(t0); o.stop(t0 + 0.1);
+      keep(o); keep(og); keep(bp);
+    }, 620, 800);
+    vol = 0.03;
+  } else if(kind === "wind"){
+    src = noiseSrc(3.6);
+    flt = c.createBiquadFilter(); flt.type = "bandpass"; flt.frequency.value = 300; flt.Q.value = 0.9;
+    g = c.createGain(); g.gain.value = 0.7;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    lfo(0.16, 0.45, g.gain);
+    src.start();
+    vol = 0.055;
+  } else {
+    src = noiseSrc(2.8);
+    flt = c.createBiquadFilter(); flt.type = "bandpass"; flt.frequency.value = 420; flt.Q.value = 0.6;
+    g = c.createGain(); g.gain.value = 0.5;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    lfo(0.3, 0.25, g.gain);
+    src.start();
+    vol = 0.04;
+  }
+  master.gain.exponentialRampToValueAtTime(vol, t + 1.4);
+  console.log("[snd] ambience:", kind);
+}
+function sndAmbFor(){
+  if(!sndOn) return;
+  var kind = "breeze";
+  var d = state.diary;
+  if(d && d.content && d.reveal){
+    var slot = (d.reveal - 1) % 5;
+    kind = slot === 0 ? "birds" : slot === 1 ? "market" : slot === 2 ? "breeze" : slot === 3 ? "waves" : "crickets";
+    if(seasonNH() === "winter") kind = "wind";
+  } else if(seasonNH() === "winter"){
+    kind = "wind";
+  }
+  sndAmbience(kind);
+}
+function sndSfx(kind){
+  if(!sndOn || !sndCtx()) return;
+  var c = actx, t = c.currentTime;
+  console.log("[snd] sfx:", kind);
+  if(kind === "takeoff"){
+    var n = c.createBufferSource(); n.buffer = sndNoiseBuf(2.2);
+    var f = c.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 0.8;
+    f.frequency.setValueAtTime(180, t);
+    f.frequency.exponentialRampToValueAtTime(1300, t + 2);
+    var g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 1.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.1);
+    n.connect(f); f.connect(g); g.connect(c.destination);
+    var o = c.createOscillator(); o.type = "sawtooth";
+    o.frequency.setValueAtTime(70, t);
+    o.frequency.exponentialRampToValueAtTime(240, t + 1.9);
+    var og = c.createGain();
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.02, t + 1.5);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 2);
+    o.connect(og); og.connect(c.destination);
+    n.start(t); n.stop(t + 2.2); o.start(t); o.stop(t + 2.1);
+  } else if(kind === "flip"){
+    var n2 = c.createBufferSource(); n2.buffer = sndNoiseBuf(0.3);
+    var f2 = c.createBiquadFilter(); f2.type = "highpass"; f2.frequency.value = 1400;
+    var g2 = c.createGain();
+    g2.gain.setValueAtTime(0.0001, t);
+    g2.gain.exponentialRampToValueAtTime(0.05, t + 0.03);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    n2.connect(f2); f2.connect(g2); g2.connect(c.destination);
+    n2.start(t); n2.stop(t + 0.3);
+  } else if(kind === "stamp"){
+    var o2 = c.createOscillator(); o2.type = "sine";
+    o2.frequency.setValueAtTime(150, t);
+    o2.frequency.exponentialRampToValueAtTime(55, t + 0.22);
+    var g3 = c.createGain();
+    g3.gain.setValueAtTime(0.0001, t);
+    g3.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+    g3.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o2.connect(g3); g3.connect(c.destination);
+    var n3 = c.createBufferSource(); n3.buffer = sndNoiseBuf(0.12);
+    var f3 = c.createBiquadFilter(); f3.type = "lowpass"; f3.frequency.value = 300;
+    var g4 = c.createGain();
+    g4.gain.setValueAtTime(0.06, t);
+    g4.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    n3.connect(f3); f3.connect(g4); g4.connect(c.destination);
+    o2.start(t); o2.stop(t + 0.32); n3.start(t); n3.stop(t + 0.14);
+  } else if(kind === "ding"){
+    var o3 = c.createOscillator(); o3.type = "sine";
+    o3.frequency.setValueAtTime(1318, t);
+    var o4 = c.createOscillator(); o4.type = "sine";
+    o4.frequency.setValueAtTime(1975, t);
+    var g5 = c.createGain();
+    g5.gain.setValueAtTime(0.0001, t);
+    g5.gain.exponentialRampToValueAtTime(0.05, t + 0.02);
+    g5.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o3.connect(g5); o4.connect(g5); g5.connect(c.destination);
+    o3.start(t); o3.stop(t + 0.55); o4.start(t); o4.stop(t + 0.55);
+  }
+}
+function toggleSound(){
+  sndOn = !sndOn;
+  state.sound = sndOn;
+  saveState();
+  var b = $("sndBtn");
+  if(b) b.textContent = sndOn ? "声音 开" : "声音 关";
+  if(sndOn){ sndCtx(); sndAmbFor(); console.log("[snd] on"); }
+  else { sndStopAmb(); console.log("[snd] off"); }
+}
+/* 声音偏好恢复：默认静音；记住偏好后首次任意点击即开启（浏览器自动播放策略） */
+(function(){
+  if(state.sound && $("sndBtn")) $("sndBtn").textContent = "声音 开";
+  var kick = function(e){
+    document.removeEventListener("click", kick, true);
+    if(e && e.target && e.target.id === "sndBtn") return;
+    if(!sndOn && state.sound) toggleSound();
+  };
+  document.addEventListener("click", kick, true);
+})();
 </script>
 </body>
 </html>
