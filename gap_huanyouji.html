@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light">
 <title>Gap环游记 · 环球旅行动态地图</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%232f7d6d'/%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%23f4f1e8'/%3E%3C/svg%3E">
 <style>
@@ -104,8 +105,10 @@ aside{width:390px;flex:0 0 390px;background:var(--panel);border-left:1.5px dashe
 #subtitleBar .sb-slot{display:inline-block;font-size:10.5px;border-radius:4px;padding:1px 7px;margin-right:8px;color:#fff}
 #subtitleBar .sb-day{font-size:10.5px;opacity:.72;margin-left:8px}
 #subtitleBar .sb-sum{display:block;font-size:11.5px;color:#ffd98a;margin-top:5px}
-.sceneCv{position:absolute;border-radius:8px;border:6px solid #fdfaf2;outline:1.5px dashed #c9bfa5;box-shadow:0 6px 20px rgba(0,0,0,.28);z-index:4;pointer-events:none}
-.sceneCv.cur{border-color:rgba(255,213,120,.9);animation:scenebreath 2s ease-in-out infinite}
+#subtitleBar .sb-hl{color:#8fd6b2;font-weight:700}
+.sceneCv{position:absolute;border-radius:8px;border:6px solid #fdfaf2;outline:1.5px dashed #c9bfa5;box-shadow:0 6px 20px rgba(0,0,0,.28);z-index:4;pointer-events:none;animation:cvin .55s ease both}
+.sceneCv.cur{border-color:rgba(255,213,120,.9);animation:cvin .55s ease both, scenebreath 2s ease-in-out .55s infinite}
+@keyframes cvin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 @keyframes scenebreath{0%,100%{box-shadow:0 0 0 0 rgba(255,213,120,0),0 6px 20px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 6px rgba(255,213,120,.3),0 6px 20px rgba(0,0,0,.28)}}
 .dreamNo{font-size:11.5px;letter-spacing:2px;color:#98a8a2;text-align:center;padding:2px 0 4px;font-weight:600}
 .shareBox{border:1.5px dashed #b9c6bf;background:#fff;padding:8px 10px;font-size:12.5px;line-height:1.8;color:#2b3a36;text-align:left;margin-bottom:6px;border-radius:8px}
@@ -129,13 +132,16 @@ aside{width:390px;flex:0 0 390px;background:var(--panel);border-left:1.5px dashe
 .galDel{border:none;background:none;color:#b5482f;font-size:12px;cursor:pointer;padding:6px}
 .galBack{position:fixed;right:16px;top:70px;z-index:21;display:none;width:auto;background:#fff}
 #dreamPanel{padding:6px 4px}
-.dm-title{font-family:"Yuanti SC","YouYuan","Microsoft YaHei","PingFang SC",sans-serif;font-size:20px;letter-spacing:2px}
+.dm-title{font-family:"Yuanti SC","YouYuan","Microsoft YaHei","PingFang SC",sans-serif;font-size:21px;letter-spacing:2px}
 .stamp-deco{width:46px;height:46px;border:2px dashed rgba(244,241,232,.75);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:9px;line-height:1.25;color:rgba(244,241,232,.85);transform:rotate(-10deg);flex:0 0 auto}
 .ticketDash{margin:12px 0 4px;border-top:2px dashed var(--line)}
 .dreamProg{margin-top:12px;text-align:center;font-size:14px;font-weight:700;color:var(--teal-deep);background:#eef5f2;border-radius:10px;padding:8px}
+.dreamStars{display:flex;justify-content:center;gap:4px;margin-top:8px;min-height:12px}
+.dreamStars i{width:12px;height:12px;background:#d8e2dd;clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);transition:background .3s}
+.dreamStars i.on{background:#e8b23a}
 #flyCaption{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fffdf7;border:1.5px dashed var(--line);border-radius:10px;padding:8px 18px;font-size:13.5px;font-weight:700;color:var(--teal-deep);display:none;z-index:9;box-shadow:0 4px 14px rgba(0,0,0,.15);letter-spacing:1px}
 footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);padding:7px;background:var(--panel);border-top:1px solid var(--line)}
-.creditLine{flex:0 0 auto;text-align:center;font-size:10.5px;line-height:1.7;color:#98a8a2;padding:5px 14px 9px;background:var(--panel)}
+.creditLine{flex:0 0 auto;text-align:center;font-size:10.5px;line-height:1.6;color:#98a8a2;padding:4px 14px 7px;background:var(--panel)}
 .creditLine summary{cursor:pointer;list-style:none}
 .creditLine summary::-webkit-details-marker{display:none}
 .creditLine[open]{text-align:left}
@@ -183,7 +189,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v1.5.0</span>
+  <span class="ver">v1.6.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
@@ -222,6 +228,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
         <div class="miniNote" style="margin-top:8px">今天想去哪，机器说了算</div>
       </div>
       <div id="dreamProg" class="dreamProg">点开始，机器替你做梦</div>
+      <div class="dreamStars" id="dreamStars"></div>
       <div id="dreamOut" style="margin-top:10px"></div>
     </div>
     <button class="galLink" onclick="openGallery()">梦境画廊 · 收集每一场白日梦</button>
@@ -1552,6 +1559,20 @@ function fillTpl(tpl, bag, rec){
     return FF_FALLBACK[name] || "";
   });
 }
+var SUM_TPL = [
+  "Day {day} 结束：今天出现最多的，是「{best}」——把它留进梦里，明天接着走。",
+  "Day {day} 小记：{best}承包了今天的记忆点，睡前再想一遍。",
+  "Day {day} 收官：出现频率冠军是「{best}」，工位上想起来还会笑。",
+  "Day {day} 打烊：今天的灵魂关键词，非「{best}」莫属。",
+  "Day {day} 复盘：日程走了大半，最上镜的还是「{best}」。",
+  "Day {day} 结束：口袋里的票根都印着「{best}」的味道。",
+  "Day {day} 备注：如果只能带一样纪念品，那一定是「{best}」。",
+  "Day {day} 存档：镜头里出现最多的，果然还是「{best}」。",
+  "Day {day} 碎碎念：走到哪都能碰见「{best}」，缘分没跑了。",
+  "Day {day} 尾声：把「{best}」轻轻收好，明天继续。",
+  "Day {day} 落幕：今天的最佳配角，颁给「{best}」。"
+];
+var lastSumTpl = -1;
 function genDiaryCore(spots){
   var d = state.diary;
   d.persona = d.persona || "tang";
@@ -1580,7 +1601,12 @@ function genDiaryCore(spots){
       if(!tally.hasOwnProperty(noun)) continue;
       if(tally[noun] > bc){ bc = tally[noun]; best = noun; }
     }
-    if(best) d.content[day + "-sum"] = {tx: "Day " + day + " 结束：今天出现最多的，是「" + best + "」——把它留进梦里，明天接着走。"};
+    if(best){
+      var ti = Math.floor(Math.random() * SUM_TPL.length);
+      if(ti === lastSumTpl) ti = (ti + 1) % SUM_TPL.length;
+      lastSumTpl = ti;
+      d.content[day + "-sum"] = {tx: SUM_TPL[ti].replace("{day}", day).replace("{best}", best)};
+    }
   }
 }
 function fcCn(){ return (state.diary && state.diary.focus) ? state.diary.focus.cn : null; }
@@ -1646,9 +1672,13 @@ function drawSlotPulse(now){
 var flyAnim = null;
 function flyTo(lon, lat, zt, dur){
   zt = Math.max(zfit * 0.55, Math.min(40, zt));
-  flyAnim = {t0: performance.now(), dur: dur || 900,
+  var tx2 = -lon * zt * dpr, ty2 = lat * zt * dpr;
+  var dpx = Math.sqrt(Math.pow(tx2 - view.x, 2) + Math.pow(ty2 - view.y, 2));
+  var use = dur || Math.max(750, Math.min(2300, 650 + dpx * 0.55));
+  console.log("[cam] flyTo dpx=" + Math.round(dpx) + " dur=" + Math.round(use));
+  flyAnim = {t0: performance.now(), dur: use,
     sz: view.z, sx: view.x, sy: view.y, tz: zt,
-    tx: -lon * zt * dpr, ty: lat * zt * dpr};
+    tx: tx2, ty: ty2};
 }
 function dreamCountries(){
   var arr = [], seen = {};
@@ -1731,12 +1761,12 @@ function dreamNext(){
   var d = state.diary;
   if(!d.content || d.reveal >= 15) return;
   d.reveal++;
-  sndSfx("flip"); sndAmbFor();
+  sndSfx("flip"); sndSfx("ding", .12); sndAmbFor();
   var idx = d.reveal - 1, slot = idx % 5, day = Math.floor(idx / 5) + 1;
   var seg = d.content[day + "-" + slot];
   var sp = byId[seg.sp];
   /* 每段都以该景点为中心 fly-to 近景 */
-  flyTo(sp.lo, sp.la, zfit * 5, 900);
+  flyTo(sp.lo, sp.la, zfit * 5);
   if(slot === 4){
     /* 深夜：暖色光圈 */
     triggerPulse(sp.la, sp.lo, true);
@@ -1837,9 +1867,9 @@ function buildDiaryCanvas(){
       drawSceneThumb(x, 66, ty - 16, 110, 74, seg2.sp, s2, seg2.food);
       x.fillStyle = SLOT_COLORS[s2];
       x.beginPath(); x.arc(202, ty - 2, 7, 0, 6.2832); x.fill();
-      x.fillStyle = "#5c6f68"; x.font = "600 17px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillStyle = "#5c6f68"; x.font = "600 15px 'Microsoft YaHei','PingFang SC',sans-serif";
       x.fillText(SLOT_NAMES[s2], 218, ty + 4);
-      x.fillStyle = "#2b3a36"; x.font = "400 19px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillStyle = "#2b3a36"; x.font = "400 21px 'Microsoft YaHei','PingFang SC',sans-serif";
       ty = wrapText(x, seg2.tx, 218, ty + 30, W - 290, 28) + 22;
     }
     /* 段间撕票虚线 */
@@ -1900,6 +1930,12 @@ function renderDreamCard(){
   var d = state.diary;
   var day = d.reveal ? Math.min(3, Math.ceil(d.reveal / 5)) : 0;
   $("dreamProg").textContent = d.reveal ? ("Day " + day + " · 第" + d.reveal + "段") : "点开始，机器替你做梦";
+  var stEl = $("dreamStars");
+  if(stEl){
+    var sh = "";
+    for(var si = 0; si < 15; si++) sh += "<i" + (si < d.reveal ? ' class="on"' : "") + "></i>";
+    stEl.innerHTML = sh;
+  }
   var noEl = $("dreamNo");
   if(noEl) noEl.textContent = dreamNo();
   var html = "";
@@ -1985,8 +2021,8 @@ function buildDiaryCanvas34(){
       x.textAlign = "left";
       return;
     }
-    x.fillStyle = "#1f5a4e"; x.font = "700 25px 'Microsoft YaHei','PingFang SC',sans-serif";
-    x.fillText("Day " + c.day + " · " + c.title, cx0 + 26, cy0 + 44);
+    x.fillStyle = "#1f5a4e"; x.font = "700 27px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText("Day " + c.day + " · " + c.title, cx0 + 26, cy0 + 46);
     x.save();
     x.translate(cx0 + cw - 46, cy0 + 42); x.rotate(-0.18);
     x.strokeStyle = "#b5482f"; x.lineWidth = 2.5;
@@ -1999,8 +2035,8 @@ function buildDiaryCanvas34(){
     x.textAlign = "left";
     x.restore();
     drawSceneThumb(x, cx0 + 26, cy0 + 62, cw - 52, 230, c.spId, 0, null);
-    x.fillStyle = "#2b3a36"; x.font = "400 20px 'Microsoft YaHei','PingFang SC',sans-serif";
-    wrapText(x, c.caption, cx0 + 26, cy0 + 324, cw - 52, 28);
+    x.fillStyle = "#2b3a36"; x.font = "400 18px 'Microsoft YaHei','PingFang SC',sans-serif";
+    wrapText(x, c.caption, cx0 + 26, cy0 + 322, cw - 52, 25);
     x.strokeStyle = "rgba(43,58,54,.3)"; x.lineWidth = 2; x.setLineDash([9, 7]);
     x.beginPath(); x.moveTo(cx0 + 14, cy0 + ch - 16); x.lineTo(cx0 + cw - 14, cy0 + ch - 16); x.stroke();
     x.setLineDash([]);
@@ -2062,7 +2098,17 @@ function buildShareCopy(){
     "在工位白日梦里去了趟" + cn,
     "上班摸鱼的间隙，白日梦替我飞去了" + cn,
     "工位白日梦第 " + (d.no || 1) + " 号，目的地" + cn,
-    "打卡不了的地方，白日梦先替我去了一趟" + cn
+    "打卡不了的地方，白日梦先替我去了一趟" + cn,
+    "会议开到第两个小时，魂已经飞去了" + cn,
+    "今日工位限定：白日梦一日游 · " + cn,
+    "老板以为我在写周报，其实我在" + cn + "吹海风",
+    "工资还没到账，白日梦已经先落地" + cn,
+    "午休二十分钟，白日梦在" + cn + "玩了三天",
+    "在" + cn + "的白日梦里，连通勤都是风景",
+    "别人的茶水间八卦，我的" + cn + "白日梦续集",
+    "报表填到眼花？来" + cn + "的白日梦喘口气",
+    "工位白日梦上新：这一次是" + cn,
+    "键盘敲到冒烟，白日梦已经把我送到了" + cn
   ];
   var hook = hooks[Math.floor(Math.random() * hooks.length)];
   var pn = PERSONAS[d.persona] ? PERSONAS[d.persona].n : "白日梦";
@@ -2113,7 +2159,7 @@ function renderGallery(){
     var ci = CINFO[rec.country];
     var card = document.createElement("div");
     card.className = "galCard";
-    var quote = (rec.content && rec.content[rec.days + "-4"]) ? rec.content[rec.days + "-4"].tx : "";
+    var quote = rec.content ? ((rec.content[rec.days + "-sum"] && rec.content[rec.days + "-sum"].tx) || (rec.content[rec.days + "-4"] ? rec.content[rec.days + "-4"].tx : "")) : "";
     card.innerHTML = '<span class="galNo">' + dreamNoOf(rec) + '</span>'
       + '<span class="galFlag">' + (ci ? ci.f : "🌍") + '</span>'
       + '<span class="galMain"><span class="galDest">' + esc(rec.country) + '</span>'
@@ -2636,6 +2682,24 @@ function drawSkyTint(){
   ctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + SKY_TINT_A[s2] + ")";
   ctx.fillRect(0, 0, CW, CH);
 }
+function highlightTx(tx, sp){
+  var words = [];
+  var cn = state.diary ? state.diary.country : null;
+  if(POOLS[cn]) ["pl", "st", "fd"].forEach(function(k){ (POOLS[cn][k] || []).forEach(function(w){ if(typeof w === "string") words.push(w); }); });
+  if(sp && sp.n) words.push(sp.n);
+  var d = state.diary;
+  if(d && d.content && d.reveal){
+    var idx = d.reveal - 1, day = Math.floor(idx / 5) + 1, s2 = idx % 5;
+    var seg = d.content[day + "-" + s2];
+    if(seg && seg.food) words.push(seg.food);
+  }
+  var out = esc(tx);
+  words.forEach(function(w){
+    if(!w) return;
+    out = out.split(w).join('<span class="sb-hl">' + w + '</span>');
+  });
+  return out;
+}
 function updateSubtitle(){
   var d = state.diary;
   var bar = $("subtitleBar");
@@ -2648,7 +2712,7 @@ function updateSubtitle(){
   var sumHtml = "";
   if(s2 === 4 && d.content[day + "-sum"]) sumHtml = '<span class="sb-sum">' + esc(d.content[day + "-sum"].tx) + '</span>';
   bar.innerHTML = '<span class="sb-slot" style="background:' + SLOT_COLORS[s2] + '">' + SLOT_NAMES[s2] + '</span>'
-    + '<span contenteditable="true" oninput="diaryEdit(\'' + day + '-' + s2 + '\', this.textContent)">' + esc(seg.tx) + '</span>'
+    + '<span contenteditable="true" oninput="diaryEdit(\'' + day + '-' + s2 + '\', this.textContent)">' + highlightTx(seg.tx, sp) + '</span>'
     + '<span class="sb-day">Day ' + day + ' · ' + esc(sp.n || "") + '</span>' + sumHtml;
 }
 function drawSceneThumb(x, px, py, w, h, spId, slot, food){
@@ -2769,9 +2833,9 @@ function buildCollectionCanvas(dreams){
       drawSceneThumb(x, 66, ty - 16, 110, 74, seg3.sp, s2, seg3.food);
       x.fillStyle = SLOT_COLORS[s2];
       x.beginPath(); x.arc(202, ty - 2, 7, 0, 6.2832); x.fill();
-      x.fillStyle = "#5c6f68"; x.font = "600 17px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillStyle = "#5c6f68"; x.font = "600 15px 'Microsoft YaHei','PingFang SC',sans-serif";
       x.fillText(SLOT_NAMES[s2], 218, ty + 4);
-      x.fillStyle = "#2b3a36"; x.font = "400 19px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillStyle = "#2b3a36"; x.font = "400 21px 'Microsoft YaHei','PingFang SC',sans-serif";
       ty = wrapText(x, seg3.tx, 218, ty + 30, W - 290, 28) + 20;
     }
     y += segH;
@@ -2867,7 +2931,7 @@ function frameLoop(now){
     var fp = (now - flyAnim.t0) / flyAnim.dur;
     if(fp >= 1){ view.z = flyAnim.tz; view.x = flyAnim.tx; view.y = flyAnim.ty; flyAnim = null; }
     else {
-      var fe = 1 - Math.pow(1 - fp, 3);
+      var q = fp, fe = q < 0.5 ? 16 * q * q * q * q * q : 1 - Math.pow(-2 * q + 2, 5) / 2;
       view.z = flyAnim.sz * Math.pow(flyAnim.tz / flyAnim.sz, fe);
       view.x = flyAnim.sx + (flyAnim.tx - flyAnim.sx) * fe;
       view.y = flyAnim.sy + (flyAnim.ty - flyAnim.sy) * fe;
@@ -3114,9 +3178,9 @@ function sndAmbFor(){
   }
   sndAmbience(kind);
 }
-function sndSfx(kind){
+function sndSfx(kind, delay){
   if(!sndOn || !sndCtx()) return;
-  var c = actx, t = c.currentTime;
+  var c = actx, t = c.currentTime + (delay || 0);
   console.log("[snd] sfx:", kind);
   if(kind === "takeoff"){
     var n = c.createBufferSource(); n.buffer = sndNoiseBuf(2.2);
