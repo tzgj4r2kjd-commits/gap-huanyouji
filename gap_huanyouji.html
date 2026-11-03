@@ -107,6 +107,8 @@ aside{width:390px;flex:0 0 390px;background:var(--panel);border-left:1.5px dashe
 .sceneCv{position:absolute;border-radius:8px;border:6px solid #fdfaf2;outline:1.5px dashed #c9bfa5;box-shadow:0 6px 20px rgba(0,0,0,.28);z-index:4;pointer-events:none}
 .sceneCv.cur{border-color:rgba(255,213,120,.9);animation:scenebreath 2s ease-in-out infinite}
 @keyframes scenebreath{0%,100%{box-shadow:0 0 0 0 rgba(255,213,120,0),0 6px 20px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 6px rgba(255,213,120,.3),0 6px 20px rgba(0,0,0,.28)}}
+.dreamNo{font-size:11.5px;letter-spacing:2px;color:#98a8a2;text-align:center;padding:2px 0 4px;font-weight:600}
+.shareBox{border:1.5px dashed #b9c6bf;background:#fff;padding:8px 10px;font-size:12.5px;line-height:1.8;color:#2b3a36;text-align:left;margin-bottom:6px;border-radius:8px}
 #dreamPanel{padding:6px 4px}
 .dm-title{font-family:"Yuanti SC","YouYuan","Microsoft YaHei","PingFang SC",sans-serif;font-size:20px;letter-spacing:2px}
 .stamp-deco{width:46px;height:46px;border:2px dashed rgba(244,241,232,.75);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:9px;line-height:1.25;color:rgba(244,241,232,.85);transform:rotate(-10deg);flex:0 0 auto}
@@ -157,7 +159,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v1.3.0</span>
+  <span class="ver">v1.4.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
@@ -189,6 +191,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
     <div id="dreamPanel">
       <div class="dm-title">工位上的白日梦机</div>
       <div class="dm-sub">在工位，把下一场旅行先过一遍</div>
+      <div class="dreamNo" id="dreamNo"></div>
       <div class="ticketDash"></div>
       <div id="dreamZone" style="text-align:center;padding:14px 0 4px">
         <button id="dreamBtn" class="dreamBtn" onclick="startDream()">开始白日梦</button>
@@ -1682,7 +1685,9 @@ function makeDream(forceCn, forcePk){
   var pks = ["tang","tezhong","meishi","suiyuan"];
   var pk = forcePk || pks[Math.floor(Math.random() * pks.length)];
   var spots = countrySpots(cn);
+  state.dreamCount = (state.dreamCount || 0) + 1;
   state.diary.tpl = ""; state.diary.country = cn; state.diary.spots = [];
+  state.diary.no = state.dreamCount;
   state.diary.persona = pk; state.diary.days = 3; state.diary.reveal = 1;
   state.diary.focus = {cn: cn,
     la: (CINFO[cn] && CINFO[cn].la !== undefined) ? CINFO[cn].la : spots[0].la,
@@ -1759,6 +1764,13 @@ function buildDiaryCanvas(){
   x.globalAlpha = 1;
   x.font = "400 46px 'Segoe UI Emoji','Apple Color Emoji',sans-serif";
   x.fillText(flags.slice(0, 8), 60, 238);
+  x.textAlign = "right";
+  x.fillStyle = "rgba(244,241,232,.95)";
+  x.font = "700 28px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.fillText(dreamNo(), W - 60, 92);
+  x.font = "400 20px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.fillText("生成于 " + dreamDate(), W - 60, 124);
+  x.textAlign = "left";
   var pn = PERSONAS[d.persona].n;
   x.fillStyle = "rgba(244,241,232,.18)";
   x.beginPath();
@@ -1853,10 +1865,15 @@ function renderDreamCard(){
   var d = state.diary;
   var day = d.reveal ? Math.min(3, Math.ceil(d.reveal / 5)) : 0;
   $("dreamProg").textContent = d.reveal ? ("Day " + day + " · 第" + d.reveal + "段") : "点开始，机器替你做梦";
+  var noEl = $("dreamNo");
+  if(noEl) noEl.textContent = dreamNo();
   var html = "";
   if(d.reveal >= 15){
+    curShare = buildShareCopy();
     html += '<div class="dd-sum">梦境播完了——长图已自动下载，预览见上。</div>'
-      + '<button class="tbtn" onclick="downloadDream()">下载这张梦（长图）</button>'
+      + '<div class="shareBox">' + esc(curShare) + '</div>'
+      + '<button class="tbtn" id="copyBtn" onclick="copyShare()">复制文案</button>'
+      + '<button class="tbtn" style="margin-top:6px" onclick="downloadDream()">下载这张梦（长图）</button>'
       + '<button class="tbtn" style="margin-top:6px" onclick="downloadDream34()">下载竖版长图（3:4）</button>'
       + '<button class="tbtn" style="margin-top:6px" onclick="dreamCollection()">生成白日梦集锦</button>'
       + '<button class="tbtn" style="margin-top:6px" onclick="startDream()">再做一个梦</button>';
@@ -1892,6 +1909,8 @@ function buildDiaryCanvas34(){
   var pn = PERSONAS[d.persona].n;
   x.font = "600 20px 'Microsoft YaHei','PingFang SC',sans-serif";
   x.textAlign = "right";
+  x.fillText(dreamNo(), W - 56, 46);
+  x.fillText("生成于 " + dreamDate(), W - 56, 110);
   x.fillText(pn + "人格", W - 56, 74);
   x.textAlign = "left";
   /* 2×2 网格：Day1~3 + 落款格 */
@@ -1967,6 +1986,75 @@ function downloadDream34(){
 function toggleDrawer(){
   var a = $("sidePanel");
   if(a) a.classList.toggle("open");
+}
+function dreamNo(){
+  return state.diary && state.diary.no ? "DREAM No." + String(state.diary.no).padStart(4, "0") : "";
+}
+function dreamDate(){
+  var t = new Date();
+  return t.getFullYear() + "." + (t.getMonth() + 1) + "." + t.getDate();
+}
+var DREAM_SUSPENSE = {"挪威":"有极光的","芬兰":"有极光和圣诞老人的","冰岛":"有黑沙滩的","新西兰":"有霍比特人村庄的","摩洛哥":"有蓝色小城的","坦桑尼亚":"有乞力马扎罗雪山的","肯尼亚":"有火烈鸟云的","智利":"有星空沙漠的","约旦":"有玫瑰之城的","埃及":"有金字塔的","秘鲁":"有云中古城的","日本":"有雪后温泉的","阿根廷":"有冰川的","希腊":"有爱琴海日落的"};
+function buildShareCopy(){
+  var d = state.diary;
+  if(!d || !d.content) return "";
+  var cn = d.country || (diarySpots()[0] ? diarySpots()[0].c : "");
+  var texts = [];
+  for(var k in d.content){ if(d.content[k] && d.content[k].tx) texts.push(d.content[k].tx); }
+  /* 素材高频词：当天所有叙述文本 × 素材池词表计数 */
+  var cand = {};
+  var pools = [];
+  if(POOLS[cn]) pools.push(POOLS[cn]);
+  pools.push(POOL_GENERIC);
+  pools.forEach(function(pl){
+    ["pl", "st", "fd"].forEach(function(key){
+      (pl[key] || []).forEach(function(w){
+        if(typeof w !== "string") return;
+        var n = 0;
+        texts.forEach(function(t){ n += t.split(w).length - 1; });
+        if(n > 0) cand[w] = (cand[w] || 0) + n;
+      });
+    });
+  });
+  var best = "", bn = 0;
+  Object.keys(cand).forEach(function(w){ if(cand[w] > bn){ bn = cand[w]; best = w; } });
+  if(!best){
+    var sp0 = d.content["1-0"] ? byId[d.content["1-0"].sp] : null;
+    best = sp0 ? sp0.n : (cn || "一场说走就走");
+  }
+  var hooks = [
+    "谁懂，在工位白日梦里偷偷去了趟" + cn,
+    "在工位白日梦里去了趟" + cn,
+    "上班摸鱼的间隙，白日梦替我飞去了" + cn,
+    "工位白日梦第 " + (d.no || 1) + " 号，目的地" + cn,
+    "打卡不了的地方，白日梦先替我去了一趟" + cn
+  ];
+  var hook = hooks[Math.floor(Math.random() * hooks.length)];
+  var pn = PERSONAS[d.persona] ? PERSONAS[d.persona].n : "白日梦";
+  return hook + "，" + pn + "人格" + (d.days || 3) + "天，最想留下的是「" + best + "」。#工位上的白日梦机 #Gap环游记";
+}
+var curShare = "";
+function copyShare(){
+  if(!curShare) curShare = buildShareCopy();
+  var done = function(){
+    var b = $("copyBtn");
+    if(b){
+      b.textContent = "已复制，去粘贴吧";
+      setTimeout(function(){ b.textContent = "复制文案"; }, 1800);
+    }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(curShare).then(done, function(){ fallbackCopy(curShare); done(); });
+  } else { fallbackCopy(curShare); done(); }
+}
+function fallbackCopy(tx){
+  var ta = document.createElement("textarea");
+  ta.value = tx;
+  ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
 }
 function downloadDream(){
   var cv2 = buildDiaryCanvas();
@@ -2559,6 +2647,13 @@ function buildCollectionCanvas(dreams){
   x.globalAlpha = .9;
   x.fillText("一张图，三个梦 · 工位上的白日梦机", 60, 158);
   x.globalAlpha = 1;
+  x.textAlign = "right";
+  x.fillStyle = "#1f5a4e";
+  x.font = "700 22px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.fillText(dreamNo(), W - 60, 76);
+  x.font = "400 18px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.fillText("生成于 " + dreamDate(), W - 60, 106);
+  x.textAlign = "left";
   var y = headH;
   dreams.forEach(function(dm){
     var ci = CINFO[dm.cn];
@@ -2589,6 +2684,30 @@ function buildCollectionCanvas(dreams){
     }
     y += segH;
   });
+  /* 第 4 格：下一条梦预告（随机一个未去过的国家 + 悬念句） */
+  var used = {};
+  dreams.forEach(function(dm){ used[dm.cn] = 1; });
+  Object.keys(state.status).forEach(function(id){
+    var rec = state.status[id];
+    if(rec && rec.s === "done" && byId[id]) used[String(byId[id].c).split("/")[0]] = 1;
+  });
+  var candC = Object.keys(CINFO).filter(function(cn){ return !used[cn] && countrySpots(cn).length; });
+  if(candC.length){
+    var pick2 = candC[Math.floor(Math.random() * candC.length)];
+    var ci2 = CINFO[pick2];
+    var sus = DREAM_SUSPENSE[pick2] || "听说很出片的";
+    x.fillStyle = "#e9f1ed"; x.fillRect(40, y + 8, W - 80, 96);
+    x.strokeStyle = "#7e9a90"; x.lineWidth = 1.5; x.setLineDash([8, 6]);
+    x.strokeRect(44, y + 12, W - 88, 88);
+    x.setLineDash([]);
+    x.fillStyle = "#1f5a4e"; x.font = "600 17px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText("下一条梦 · 预告", 64, y + 36);
+    x.font = "400 32px 'Segoe UI Emoji','Apple Color Emoji',sans-serif";
+    x.fillText(ci2 ? ci2.f : "🌍", 64, y + 80);
+    x.fillStyle = "#2b3a36"; x.font = "700 25px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText("下一站，也许是" + sus + pick2, 112, y + 76);
+    y += 128;
+  }
   x.fillStyle = "#2f7d6d"; x.font = "700 28px 'Microsoft YaHei','PingFang SC',sans-serif";
   x.fillText("Gap环游记 · 工位上的白日梦机", 60, y + 70);
   return cv2;
@@ -2722,6 +2841,7 @@ function ensureStateDefaults(){
   if(!state.status) state.status = {};
   if(state.home === undefined) state.home = null;
   if(!state.diary) state.diary = {country:"", spots:[], persona:"tang", days:3, content:null, reveal:0};
+  if(state.dreamCount === undefined) state.dreamCount = 0;
 }
 loadState();
 ensureStateDefaults();
