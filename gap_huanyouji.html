@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Gap环游记 · 环球旅行动态地图</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%232f7d6d'/%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%23f4f1e8'/%3E%3C/svg%3E">
 <style>
@@ -115,6 +115,9 @@ aside{width:390px;flex:0 0 390px;background:var(--panel);border-left:1.5px dashe
 #flyCaption{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:#fffdf7;border:1.5px dashed var(--line);border-radius:10px;padding:8px 18px;font-size:13.5px;font-weight:700;color:var(--teal-deep);display:none;z-index:9;box-shadow:0 4px 14px rgba(0,0,0,.15);letter-spacing:1px}
 footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);padding:7px;background:var(--panel);border-top:1px solid var(--line)}
 .creditLine{flex:0 0 auto;text-align:center;font-size:10.5px;line-height:1.7;color:#98a8a2;padding:5px 14px 9px;background:var(--panel)}
+.creditLine summary{cursor:pointer;list-style:none}
+.creditLine summary::-webkit-details-marker{display:none}
+.creditLine[open]{text-align:left}
 #bootMask{position:fixed;inset:0;z-index:99;background:#f4f1e8;display:flex;align-items:center;justify-content:center}
 .bootCard{background:#fff;border:1.5px dashed #b9c6bf;border-radius:12px;padding:26px 34px;text-align:center;box-shadow:0 8px 24px rgba(31,90,78,.12)}
 .bootTitle{font-size:17px;font-weight:700;color:#1f5a4e;letter-spacing:2px}
@@ -128,6 +131,24 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   aside{width:100%;flex:1 1 auto}
   #mapWrap{flex:0 0 46vh}
 }
+/* 手机竖屏：地图全屏 + 右栏转底部抽屉 */
+@media (max-width:768px){
+  main{flex-direction:column}
+  #mapWrap{flex:1 1 auto}
+  aside{position:fixed;left:0;right:0;bottom:0;z-index:8;width:100%;max-height:52vh;background:var(--panel);border-top:1.5px dashed var(--line);border-radius:16px 16px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.18);transform:translateY(calc(100% - 54px));transition:transform .3s ease;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+  aside.open{transform:translateY(0)}
+  .drawerTab{position:sticky;top:0;display:flex;align-items:center;justify-content:center;height:54px;background:var(--panel);cursor:pointer;z-index:2}
+  .drawerTab i{display:block;width:46px;height:5px;border-radius:3px;background:#c9d6d0}
+  .sceneCv{width:min(90vw,480px) !important;height:auto !important}
+  #subtitleBar{left:16px;transform:none;bottom:calc(64px + env(safe-area-inset-bottom));font-size:16.5px;min-width:0;width:calc(100% - 32px);padding:12px 16px}
+  header{padding:6px 8px;gap:5px}
+  header .tag{display:none}
+  header .ptxt{display:none}
+  footer{padding:4px;font-size:10px}
+  .creditLine{padding:3px 10px 5px}
+  .creditLine summary{font-size:10px}
+}
+#map{touch-action:none}
 </style>
 </head>
 <body>
@@ -136,7 +157,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v1.2.0</span>
+  <span class="ver">v1.3.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
@@ -163,7 +184,8 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
     <div id="flyCaption"></div>
   </div>
 
-  <aside>
+  <aside id="sidePanel">
+    <div class="drawerTab" id="drawerTab" onclick="toggleDrawer()"><i></i></div>
     <div id="dreamPanel">
       <div class="dm-title">工位上的白日梦机</div>
       <div class="dm-sub">在工位，把下一场旅行先过一遍</div>
@@ -179,7 +201,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
 </main>
 
 <footer>数据仅存本地 · 足迹、美食与日记只在你浏览器里，不上传任何服务器</footer>
-<div class="creditLine">图片致谢 · 实景照片来自 Wikimedia Commons（CC 授权或公有领域）： File:Taj Mahal in March 2004.jpg · Dhirad, picture edited by J. A. Knudsen · CC BY-SA 3.0 File:Great wall of china-mutianyu 4.JPG · Ahazan · Public domain File:Hall of Supreme Harmony.JPG · Gisling · CC BY 3.0 File:Lake Kawaguchiko Sakura Mount Fuji 2.JPG · Midori · CC BY 3.0 File:Torii Gates At Fushimi Inari Taisha (129796595).jpeg · Ilya Grigorik · CC BY-SA 3.0 File:Angkor Wat, Camboya, 2013-08-15, DD 014.JPG · Diego Delso · CC BY-SA 3.0 File:Kuta Bali Indonesia Pura-Luhur-Uluwatu-03.jpg · CEphoto, Uwe Aranas · CC BY-SA 3.0 File:Burj dubai 3.11.08.jpg · Aheilner · CC BY-SA 3.0 File:Churches in Oia, Greece.jpg · palindrome6996 · CC BY 2.0 File:Tour eiffel at sunrise from the trocadero.jpg · Tristan Nitot · CC BY-SA 3.0 File:Colosseum in Rome, Italy - April 2007.jpg · Diliff · CC BY-SA 2.5 File:Venice Gondola Grand Canal.jpg · Saffron Blaze · CC BY-SA 3.0 File:Sagrada Familia 03.jpg · Bernard Gagnon · CC BY-SA 3.0 File:Clock Tower - Palace of Westminster, London - September 2006.jpg · Diliff · CC BY 2.5 File:Kheops-Pyramid.jpg · Nina · CC BY 2.5 File:Hazy blue hour in Grand Canyon.JPG · Michael Gäbler · CC BY 3.0 File:Manhattan from Weehawken, NJ.jpg · Dmitry Avdeev · CC BY-SA 3.0 File:Machu picchu grande.jpg · Thomas Quine · CC BY 2.0 File:Obama family in mist in Rio de Janeiro.jpg · Pete Souza · Public domain File:Sydney opera house side view.jpg · Mfield, Matthew Field, http://www.photography.mattfield.com · CC BY-SA 3.0 File:Coral Outcrop Flynn Reef.jpg · Toby Hudson · CC BY-SA 3.0</div>
+<details class="creditLine"><summary>图片致谢 · 实景照片来自 Wikimedia Commons（CC 授权或公有领域）</summary> File:Taj Mahal in March 2004.jpg · Dhirad, picture edited by J. A. Knudsen · CC BY-SA 3.0 File:Great wall of china-mutianyu 4.JPG · Ahazan · Public domain File:Hall of Supreme Harmony.JPG · Gisling · CC BY 3.0 File:Lake Kawaguchiko Sakura Mount Fuji 2.JPG · Midori · CC BY 3.0 File:Torii Gates At Fushimi Inari Taisha (129796595).jpeg · Ilya Grigorik · CC BY-SA 3.0 File:Angkor Wat, Camboya, 2013-08-15, DD 014.JPG · Diego Delso · CC BY-SA 3.0 File:Kuta Bali Indonesia Pura-Luhur-Uluwatu-03.jpg · CEphoto, Uwe Aranas · CC BY-SA 3.0 File:Burj dubai 3.11.08.jpg · Aheilner · CC BY-SA 3.0 File:Churches in Oia, Greece.jpg · palindrome6996 · CC BY 2.0 File:Tour eiffel at sunrise from the trocadero.jpg · Tristan Nitot · CC BY-SA 3.0 File:Colosseum in Rome, Italy - April 2007.jpg · Diliff · CC BY-SA 2.5 File:Venice Gondola Grand Canal.jpg · Saffron Blaze · CC BY-SA 3.0 File:Sagrada Familia 03.jpg · Bernard Gagnon · CC BY-SA 3.0 File:Clock Tower - Palace of Westminster, London - September 2006.jpg · Diliff · CC BY 2.5 File:Kheops-Pyramid.jpg · Nina · CC BY 2.5 File:Hazy blue hour in Grand Canyon.JPG · Michael Gäbler · CC BY 3.0 File:Manhattan from Weehawken, NJ.jpg · Dmitry Avdeev · CC BY-SA 3.0 File:Machu picchu grande.jpg · Thomas Quine · CC BY 2.0 File:Obama family in mist in Rio de Janeiro.jpg · Pete Souza · Public domain File:Sydney opera house side view.jpg · Mfield, Matthew Field, http://www.photography.mattfield.com · CC BY-SA 3.0 File:Coral Outcrop Flynn Reef.jpg · Toby Hudson · CC BY-SA 3.0</details>
 
 <script>
 "use strict";
@@ -1288,6 +1310,50 @@ cv.addEventListener("wheel", function(e){
   view.y = my-cy+lat*view.z*dpr;
   draw();
 }, {passive:false});
+/* 触摸：单指拖拽 / 双指捏合缩放（以捏合中点为锚） */
+var tState = null;
+cv.addEventListener("touchstart", function(e){
+  stopDemo();
+  if(e.touches.length === 1){
+    tState = {mode: "drag", lx: e.touches[0].clientX, ly: e.touches[0].clientY, moved: false};
+  } else if(e.touches.length === 2){
+    var dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
+    tState = {mode: "pinch", dist: Math.sqrt(dx*dx + dy*dy) || 1,
+      cx: (e.touches[0].clientX + e.touches[1].clientX) / 2, cy: (e.touches[0].clientY + e.touches[1].clientY) / 2, z0: view.z};
+  }
+}, {passive: true});
+cv.addEventListener("touchmove", function(e){
+  if(!tState) return;
+  e.preventDefault();
+  if(tState.mode === "drag" && e.touches.length === 1){
+    var tx = e.touches[0].clientX, ty = e.touches[0].clientY;
+    var dx = tx - tState.lx, dy = ty - tState.ly;
+    if(Math.abs(dx) + Math.abs(dy) > 2) tState.moved = true;
+    view.x += dx*dpr; view.y += dy*dpr;
+    tState.lx = tx; tState.ly = ty;
+    $("tip").style.opacity = 0;
+    draw();
+  } else if(tState.mode === "pinch" && e.touches.length === 2){
+    var dx2 = e.touches[0].clientX - e.touches[1].clientX, dy2 = e.touches[0].clientY - e.touches[1].clientY;
+    var dist = Math.sqrt(dx2*dx2 + dy2*dy2) || 1;
+    var r = cv.getBoundingClientRect();
+    var mx = (tState.cx - r.left)*dpr, my = (tState.cy - r.top)*dpr;
+    var lon = (mx-CW/2-view.x)/(view.z*dpr);
+    var lat = (CH/2-my+view.y)/(view.z*dpr);
+    var minZ = Math.min(CW/(360*dpr), CH/(180*dpr))*0.5;
+    view.z = Math.max(minZ, Math.min(40, tState.z0 * dist / tState.dist));
+    view.x = mx-CW/2-lon*view.z*dpr;
+    view.y = CH/2-my+lat*view.z*dpr;
+    draw();
+  }
+}, {passive: false});
+cv.addEventListener("touchend", function(e){
+  if(tState && tState.mode === "drag" && tState.moved){
+    dragMoved = true;
+    setTimeout(function(){ dragMoved = false; }, 240);
+  }
+  if(e.touches.length === 0) tState = null;
+});
 function zoomBy(f){
   var minZ = Math.min(CW/(360*dpr), CH/(180*dpr))*0.5;
   view.z = Math.max(minZ, Math.min(40, view.z*f));
@@ -1791,10 +1857,116 @@ function renderDreamCard(){
   if(d.reveal >= 15){
     html += '<div class="dd-sum">梦境播完了——长图已自动下载，预览见上。</div>'
       + '<button class="tbtn" onclick="downloadDream()">下载这张梦（长图）</button>'
+      + '<button class="tbtn" style="margin-top:6px" onclick="downloadDream34()">下载竖版长图（3:4）</button>'
       + '<button class="tbtn" style="margin-top:6px" onclick="dreamCollection()">生成白日梦集锦</button>'
       + '<button class="tbtn" style="margin-top:6px" onclick="startDream()">再做一个梦</button>';
   }
   $("dreamOut").innerHTML = html;
+}
+function buildDiaryCanvas34(){
+  var d = state.diary;
+  if(!d || !d.content) return null;
+  var W = 900, H = 1200;
+  var cv2 = document.createElement("canvas");
+  cv2.width = W; cv2.height = H;
+  var x = cv2.getContext("2d");
+  x.fillStyle = "#f4f1e8"; x.fillRect(0, 0, W, H);
+  var spots = diarySpots();
+  var flags = "", seenC = {};
+  spots.forEach(function(sp){
+    var cn = String(sp.c).split("/")[0];
+    if(!seenC[cn]){ seenC[cn] = 1; var ci = CINFO[cn]; flags += ci ? ci.f : "🌍"; }
+  });
+  var g = x.createLinearGradient(0, 0, W, 170);
+  g.addColorStop(0, "#1f5a4e"); g.addColorStop(1, "#2f7d6d");
+  x.fillStyle = g; x.fillRect(0, 0, W, 170);
+  x.fillStyle = "#f4f1e8";
+  x.font = "700 40px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.fillText("我的" + d.days + "天 · " + (spots[0] ? spots[0].c : ""), 56, 74);
+  x.font = "400 21px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.globalAlpha = .9;
+  x.fillText("工位上的白日梦机 · 竖版 3:4", 56, 112);
+  x.globalAlpha = 1;
+  x.font = "400 32px 'Segoe UI Emoji','Apple Color Emoji',sans-serif";
+  x.fillText(flags.slice(0, 8), 56, 154);
+  var pn = PERSONAS[d.persona].n;
+  x.font = "600 20px 'Microsoft YaHei','PingFang SC',sans-serif";
+  x.textAlign = "right";
+  x.fillText(pn + "人格", W - 56, 74);
+  x.textAlign = "left";
+  /* 2×2 网格：Day1~3 + 落款格 */
+  var cells = [];
+  for(var day = 1; day <= d.days; day++){
+    var sp = byId[d.content[day + "-0"].sp] || {};
+    var cap = "";
+    var sg0 = d.content[day + "-0"];
+    if(sg0 && sg0.tx) cap = String(sg0.tx).slice(0, 46);
+    cells.push({day: day, spId: sg0 ? sg0.sp : null, title: sp.n || "", caption: cap});
+  }
+  cells.push({fin: true});
+  var gx0 = 40, gy0 = 196, cw = (W - 120) / 2, ch = 450;
+  cells.forEach(function(c, i){
+    var cx0 = gx0 + (i % 2) * (cw + 40);
+    var cy0 = gy0 + Math.floor(i / 2) * (ch + 28);
+    x.fillStyle = "#ffffff";
+    x.fillRect(cx0, cy0, cw, ch);
+    if(c.fin){
+      x.save();
+      x.translate(cx0 + cw / 2, cy0 + ch / 2 - 20); x.rotate(-0.22);
+      x.strokeStyle = "#b5482f"; x.lineWidth = 4;
+      x.beginPath(); x.arc(0, 0, 66, 0, 6.2832); x.stroke();
+      x.lineWidth = 2;
+      x.beginPath(); x.arc(0, 0, 56, 0, 6.2832); x.stroke();
+      x.fillStyle = "#b5482f"; x.textAlign = "center";
+      x.font = "700 17px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillText("Gap环游记", 0, -18);
+      x.fillText("白日梦机", 0, 6);
+      x.font = "700 24px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.fillText("已 验 讫", 0, 38);
+      x.textAlign = "left";
+      x.restore();
+      x.fillStyle = "#5c6f68"; x.font = "400 20px 'Microsoft YaHei','PingFang SC',sans-serif";
+      x.textAlign = "center";
+      x.fillText("梦境已全线过检 · 分享你的白日梦", cx0 + cw / 2, cy0 + ch - 40);
+      x.textAlign = "left";
+      return;
+    }
+    x.fillStyle = "#1f5a4e"; x.font = "700 25px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText("Day " + c.day + " · " + c.title, cx0 + 26, cy0 + 44);
+    x.save();
+    x.translate(cx0 + cw - 46, cy0 + 42); x.rotate(-0.18);
+    x.strokeStyle = "#b5482f"; x.lineWidth = 2.5;
+    x.beginPath(); x.arc(0, 0, 30, 0, 6.2832); x.stroke();
+    x.fillStyle = "#b5482f"; x.textAlign = "center";
+    x.font = "700 11px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText("DAY", 0, -6);
+    x.font = "700 20px 'Microsoft YaHei','PingFang SC',sans-serif";
+    x.fillText(String(c.day), 0, 16);
+    x.textAlign = "left";
+    x.restore();
+    drawSceneThumb(x, cx0 + 26, cy0 + 62, cw - 52, 230, c.spId, 0, null);
+    x.fillStyle = "#2b3a36"; x.font = "400 20px 'Microsoft YaHei','PingFang SC',sans-serif";
+    wrapText(x, c.caption, cx0 + 26, cy0 + 324, cw - 52, 28);
+    x.strokeStyle = "rgba(43,58,54,.3)"; x.lineWidth = 2; x.setLineDash([9, 7]);
+    x.beginPath(); x.moveTo(cx0 + 14, cy0 + ch - 16); x.lineTo(cx0 + cw - 14, cy0 + ch - 16); x.stroke();
+    x.setLineDash([]);
+  });
+  return cv2;
+}
+function downloadDream34(){
+  var cv2 = buildDiaryCanvas34();
+  if(!cv2){ alert("先生成一个梦"); return; }
+  var a = document.createElement("a");
+  a.download = "白日梦竖版·" + (state.diary.country || "旅行") + ".png";
+  a.href = cv2.toDataURL("image/png");
+  a.click();
+  cv2.style.width = "100%"; cv2.style.maxWidth = "340px";
+  $("dreamOut").appendChild(cv2);
+  console.log("[poster34] done");
+}
+function toggleDrawer(){
+  var a = $("sidePanel");
+  if(a) a.classList.toggle("open");
 }
 function downloadDream(){
   var cv2 = buildDiaryCanvas();
@@ -1839,6 +2011,7 @@ function photoImg(spId){
     if(!rec) return null;
     im = new Image();
     im.src = rec.d;
+    if(im.decode) im.decode();
     photoCache[spId] = im;
   }
   return im;
