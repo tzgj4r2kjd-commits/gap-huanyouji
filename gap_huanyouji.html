@@ -109,6 +109,25 @@ aside{width:390px;flex:0 0 390px;background:var(--panel);border-left:1.5px dashe
 @keyframes scenebreath{0%,100%{box-shadow:0 0 0 0 rgba(255,213,120,0),0 6px 20px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 6px rgba(255,213,120,.3),0 6px 20px rgba(0,0,0,.28)}}
 .dreamNo{font-size:11.5px;letter-spacing:2px;color:#98a8a2;text-align:center;padding:2px 0 4px;font-weight:600}
 .shareBox{border:1.5px dashed #b9c6bf;background:#fff;padding:8px 10px;font-size:12.5px;line-height:1.8;color:#2b3a36;text-align:left;margin-bottom:6px;border-radius:8px}
+.galLink{margin:6px auto 10px;display:block;background:none;border:none;color:#7e9a90;font-size:12px;letter-spacing:2px;cursor:pointer;text-decoration:underline dotted}
+.galLink:hover{color:#1f5a4e}
+#galMask{position:fixed;inset:0;z-index:20;background:#f4f1e8;display:none;flex-direction:column;overflow:auto;padding:18px}
+#galMask.open{display:flex}
+.galHead{display:flex;align-items:center;gap:12px;padding-bottom:12px}
+.galTitle{font-size:18px;font-weight:800;color:var(--teal-deep);letter-spacing:3px}
+.galCount{font-size:12px;color:#98a8a2}
+.galClose{margin-left:auto}
+.galList{display:flex;flex-direction:column;gap:10px}
+.galCard{background:#fff;border:1.5px dashed #b9c6bf;border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.galCard:hover{border-color:#7e9a90}
+.galNo{font-size:11px;letter-spacing:1px;color:#98a8a2;font-weight:600;min-width:88px}
+.galFlag{font-size:22px}
+.galMain{flex:1}
+.galDest{font-weight:700;color:#1f5a4e}
+.galMeta{font-size:11.5px;color:#8a9a94;margin-top:2px}
+.galQuote{font-size:12px;color:#2b3a36;margin-top:3px}
+.galDel{border:none;background:none;color:#b5482f;font-size:12px;cursor:pointer;padding:6px}
+.galBack{position:fixed;right:16px;top:70px;z-index:21;display:none;width:auto;background:#fff}
 #dreamPanel{padding:6px 4px}
 .dm-title{font-family:"Yuanti SC","YouYuan","Microsoft YaHei","PingFang SC",sans-serif;font-size:20px;letter-spacing:2px}
 .stamp-deco{width:46px;height:46px;border:2px dashed rgba(244,241,232,.75);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:9px;line-height:1.25;color:rgba(244,241,232,.85);transform:rotate(-10deg);flex:0 0 auto}
@@ -155,11 +174,16 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
 </head>
 <body>
 <div id="bootMask"><div class="bootCard"><div class="bootTitle">正在登机…</div><div class="bootStrip"><i>✈</i></div><div class="bootSub">Gap环游记 · 白日梦机</div></div></div>
+<div id="galMask">
+  <div class="galHead"><span class="galTitle">梦境画廊</span><span class="galCount" id="galCount"></span><button class="tbtn galClose" onclick="closeGallery()">收起</button></div>
+  <div class="galList" id="galList"></div>
+</div>
+<button class="tbtn galBack" id="galBack" onclick="exitReplay()">退出回看</button>
 <header>
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v1.4.0</span>
+  <span class="ver">v1.5.0</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
@@ -200,6 +224,7 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
       <div id="dreamProg" class="dreamProg">点开始，机器替你做梦</div>
       <div id="dreamOut" style="margin-top:10px"></div>
     </div>
+    <button class="galLink" onclick="openGallery()">梦境画廊 · 收集每一场白日梦</button>
   </aside>
 </main>
 
@@ -1847,7 +1872,17 @@ function buildDiaryCanvas(){
   x.restore();
   return cv2;
 }
+function archiveDream(){
+  var d = state.diary;
+  if(!d || !d.content || !d.no) return;
+  state.gallery = state.gallery || [];
+  state.gallery.push({no: d.no, ts: Date.now(), country: d.country, persona: d.persona, days: d.days,
+    content: d.content, spots: diarySpots().map(function(sp){ return sp.id; }), focus: d.focus});
+  while(state.gallery.length > 30) state.gallery.shift();
+  saveState();
+}
 function dreamFinish(){
+  archiveDream();
   renderDreamCard();
   /* 播完自动弹出长图成品预览并自动触发下载 */
   var cv2 = buildDiaryCanvas();
@@ -2055,6 +2090,63 @@ function fallbackCopy(tx){
   ta.select();
   try{ document.execCommand("copy"); }catch(e){}
   document.body.removeChild(ta);
+}
+function dreamNoOf(rec){ return "DREAM No." + String(rec.no).padStart(4, "0"); }
+function fmtGalDate(ts){ var t = new Date(ts); return t.getFullYear() + "." + (t.getMonth() + 1) + "." + t.getDate(); }
+function openGallery(){
+  renderGallery();
+  $("galMask").classList.add("open");
+}
+function closeGallery(){
+  $("galMask").classList.remove("open");
+}
+function renderGallery(){
+  var g = state.gallery || [];
+  $("galCount").textContent = g.length + " / 30";
+  var list = $("galList");
+  list.innerHTML = "";
+  if(!g.length){
+    list.innerHTML = '<div class="galMeta" style="text-align:center;padding:30px">还没有存档的梦——播完一场白日梦会自动收进画廊。</div>';
+    return;
+  }
+  g.slice().reverse().forEach(function(rec){
+    var ci = CINFO[rec.country];
+    var card = document.createElement("div");
+    card.className = "galCard";
+    var quote = (rec.content && rec.content[rec.days + "-4"]) ? rec.content[rec.days + "-4"].tx : "";
+    card.innerHTML = '<span class="galNo">' + dreamNoOf(rec) + '</span>'
+      + '<span class="galFlag">' + (ci ? ci.f : "🌍") + '</span>'
+      + '<span class="galMain"><span class="galDest">' + esc(rec.country) + '</span>'
+      + '<div class="galMeta">' + (PERSONAS[rec.persona] ? PERSONAS[rec.persona].n : "") + '人格 · ' + fmtGalDate(rec.ts) + '</div>'
+      + '<div class="galQuote">' + esc(quote) + '</div></span>'
+      + '<button class="galDel" onclick="event.stopPropagation(); delDream(' + rec.no + ')">删除</button>';
+    card.onclick = function(){ replayDream(rec.no); };
+    list.appendChild(card);
+  });
+}
+var replayBackup = null;
+function replayDream(no){
+  var rec = null;
+  (state.gallery || []).forEach(function(r){ if(r.no === no) rec = r; });
+  if(!rec) return;
+  if(!replayBackup) replayBackup = JSON.parse(JSON.stringify(state.diary));
+  state.diary = {no: rec.no, country: rec.country, persona: rec.persona, days: rec.days,
+    content: rec.content, spots: rec.spots.slice(), focus: rec.focus, reveal: 15};
+  closeGallery();
+  syncScenes(); saveState(); renderDreamCard(); updateSubtitle();
+  if(state.diary.focus) flyTo(state.diary.focus.lo, state.diary.focus.la, zfit * 3.2, 900);
+  $("galBack").style.display = "block";
+}
+function exitReplay(){
+  if(replayBackup){ state.diary = replayBackup; replayBackup = null; }
+  $("galBack").style.display = "none";
+  syncScenes(); saveState(); renderDreamCard(); updateSubtitle();
+}
+function delDream(no){
+  if(!confirm("删除这条梦的存档？不可恢复。")) return;
+  state.gallery = (state.gallery || []).filter(function(r){ return r.no !== no; });
+  saveState();
+  renderGallery();
 }
 function downloadDream(){
   var cv2 = buildDiaryCanvas();
@@ -2842,6 +2934,7 @@ function ensureStateDefaults(){
   if(state.home === undefined) state.home = null;
   if(!state.diary) state.diary = {country:"", spots:[], persona:"tang", days:3, content:null, reveal:0};
   if(state.dreamCount === undefined) state.dreamCount = 0;
+  if(!state.gallery) state.gallery = [];
 }
 loadState();
 ensureStateDefaults();
