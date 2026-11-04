@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工位上的白日梦机 · 登机中</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #0b1d3a 0%, #1b3a6b 55%, #2d5aa0 100%);
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #eaf1fb;
+  }
+  .boarding {
+    width: min(420px, 90vw);
+    background: #fdfcf8;
+    color: #1d2b3f;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    overflow: hidden;
+  }
+  .boarding .head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 22px 10px;
+    border-bottom: 2px dashed #d8d2c4;
+  }
+  .head .brand { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .head .tag { font-size: 11px; color: #8a94a6; border: 1px solid #cfd6e0; padding: 2px 8px; border-radius: 999px; }
+  .route { padding: 20px 22px 6px; display: flex; align-items: center; gap: 12px; }
+  .route .city { font-size: 26px; font-weight: 700; }
+  .route .city small { display: block; font-size: 11px; font-weight: 400; color: #8a94a6; letter-spacing: 2px; }
+  .route .lane { flex: 1; position: relative; height: 26px; }
+  .lane .dashes { position: absolute; top: 12px; left: 0; right: 0; border-top: 2px dashed #b9c4d4; }
+  .lane .plane {
+    position: absolute; top: 2px; left: 0; font-size: 18px; transform: rotate(45deg);
+    transition: left .3s linear;
+  }
+  .status { padding: 6px 22px 4px; font-size: 13px; color: #5b6b82; min-height: 22px; }
+  .bar-wrap { padding: 4px 22px 18px; }
+  .bar { height: 8px; background: #ece7da; border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0%; border-radius: 999px;
+    background: linear-gradient(90deg, #2d5aa0, #5a8fd0); transition: width .3s; }
+  .pct { font-size: 12px; color: #8a94a6; margin-top: 6px; text-align: right; }
+  .foot {
+    background: #f4f0e6; padding: 12px 22px; font-size: 11px; color: #8a8474;
+    display: flex; justify-content: space-between;
+  }
+  .err { padding: 18px 22px 22px; display: none; }
+  .err p { font-size: 13px; color: #a0522d; margin-bottom: 12px; line-height: 1.6; }
+  .err button {
+    margin-right: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+    border: 1px solid #2d5aa0; color: #2d5aa0; background: #fff; border-radius: 8px;
+  }
+  .err button.primary { background: #2d5aa0; color: #fff; }
+</style>
+</head>
+<body>
+<div class="boarding">
+  <div class="head">
+    <div class="brand">白日梦航空</div>
+    <div class="tag">BOARDING PASS</div>
+  </div>
+  <div class="route">
+    <div class="city">工位<small>DESK</small></div>
+    <div class="lane">
+      <div class="dashes"></div>
+      <div class="plane" id="plane">✈</div>
+    </div>
+    <div class="city">梦<small>DREAM</small></div>
+  </div>
+  <div class="status" id="status">正在为你调取白日梦机舱…</div>
+  <div class="bar-wrap">
+    <div class="bar"><i id="bar"></i></div>
+    <div class="pct" id="pct">0%</div>
+  </div>
+  <div class="err" id="err">
+    <p id="errMsg">网络 turbulence：这次装载失败了。换一条航线再试试。</p>
+    <button class="primary" id="retry">重试</button>
+    <button id="mirror2">备用航线2</button>
+    <button id="mirror3">备用航线3</button>
+  </div>
+  <div class="foot"><span>GAP HUANYOUJI</span><span>单文件 · 免安装 · 本地运行</span></div>
+</div>
+<iframe id="app" style="display:none;width:100vw;height:100vh;border:0;position:fixed;inset:0;"></iframe>
+<script>
+(function () {
+  var REPO = 'tzgj4r2kjd-commits/gap-huanyouji';
+  var REF = 'main';
+  var FILE = 'gap_huanyouji.html';
+  var MIRRORS = [
+    'https://cdn.jsdelivr.net/gh/' + REPO + '@' + REF + '/' + FILE,
+    'https://fastly.jsdelivr.net/gh/' + REPO + '@' + REF + '/' + FILE,
+    'https://testingcf.jsdelivr.net/gh/' + REPO + '@' + REF + '/' + FILE
+  ];
+  var status = document.getElementById('status');
+  var bar = document.getElementById('bar');
+  var pct = document.getElementById('pct');
+  var plane = document.getElementById('plane');
+  var errBox = document.getElementById('err');
+  var errMsg = document.getElementById('errMsg');
+  var frame = document.getElementById('app');
+  var idx = 0;
+
+  function showErr(msg) {
+    status.textContent = '';
+    errMsg.textContent = msg;
+    errBox.style.display = 'block';
+  }
+
+  function load() {
+    errBox.style.display = 'none';
+    var url = MIRRORS[idx];
+    status.textContent = '航线 ' + (idx + 1) + ' 正在装载…';
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 60000);
+    fetch(url, { signal: ctrl.signal }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var total = Number(res.headers.get('content-length')) || 1200000;
+      if (!res.body || !res.body.getReader) return res.text().then(emit(null));
+      var reader = res.body.getReader();
+      var chunks = [], got = 0;
+      function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) {
+            clearTimeout(timer);
+            var blob = new Blob(chunks, { type: 'text/html' });
+            status.textContent = '起飞！';
+            bar.style.width = '100%'; pct.textContent = '100%';
+            plane.style.left = 'calc(100% - 22px)';
+            frame.src = URL.createObjectURL(blob);
+            frame.style.display = 'block';
+            document.querySelector('.boarding').style.display = 'none';
+            document.body.style.background = '#fff';
+            return;
+          }
+          chunks.push(r.value); got += r.value.length;
+          emit(got / total);
+          return pump();
+        });
+      }
+      return pump();
+    }).catch(function (e) {
+      clearTimeout(timer);
+      if (idx < MIRRORS.length - 1) { idx++; load(); }
+      else showErr('三条航线都没装载成功（' + (e && e.message ? e.message : '网络异常') + '）。建议检查网络后重试。');
+    });
+  }
+  function emit(t) {
+    var p = t === null ? 0.05 : Math.min(0.99, t);
+    bar.style.width = (p * 100).toFixed(0) + '%';
+    pct.textContent = (p * 100).toFixed(0) + '%';
+    plane.style.left = (p * 100).toFixed(1) + '%';
+    if (t === null) return function (txt) { if (txt) { bar.style.width = '99%'; pct.textContent = '解析中…'; } };
+  }
+  document.getElementById('retry').addEventListener('click', function () { idx = 0; load(); });
+  document.getElementById('mirror2').addEventListener('click', function () { idx = 1; load(); });
+  document.getElementById('mirror3').addEventListener('click', function () { idx = 2; load(); });
+  load();
+})();
+</script>
+</body>
+</html>
