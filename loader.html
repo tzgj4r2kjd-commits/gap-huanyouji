@@ -87,7 +87,7 @@
 <script>
 (function () {
   var REPO = 'tzgj4r2kjd-commits/gap-huanyouji';
-  var REF = 'main';
+  var REF = 'v2.1'; /* 每次发版更新tag+BV */
   var FILE = 'gap_huanyouji.html';
   var MIRRORS = [
     'https://cdn.jsdelivr.net/gh/' + REPO + '@' + REF + '/' + FILE,
@@ -115,7 +115,7 @@
     status.textContent = '航线 ' + (idx + 1) + ' 正在装载…';
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, 60000);
-    fetch(url, { signal: ctrl.signal }).then(function (res) {
+    fetch(url + (url.indexOf('?') < 0 ? '?v=' + REF : ''), { signal: ctrl.signal, cache: 'no-store' }).then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var total = Number(res.headers.get('content-length')) || 1200000;
       if (!res.body || !res.body.getReader) return res.text().then(emit(null));
