@@ -259,14 +259,13 @@ footer{flex:0 0 auto;text-align:center;font-size:11.5px;color:var(--ink2);paddin
   <h1>Gap环游记</h1>
     <span class="stamp-deco">白日梦<br>已验讫</span>
   <span class="tag">工位上的白日梦机——选一个地方，代入一场说走就走的旅行</span>
-  <span class="ver">v2.2.0</span>
+  <span class="ver">v2.2.1</span>
   <span class="sp"></span>
   <button class="hbtn" id="homeBtn" onclick="askHome()">从哪里出发</button>
   <span class="ptxt">定位仅本地计算不上传</span>
   <button class="hbtn" onclick="loadDemo()">载入示例</button>
   <button class="hbtn" onclick="replayDemo()">重播演示</button>
   <button class="hbtn warn" onclick="resetAll()">清空数据</button>
-  <button class="hbtn" id="mascotBtn" onclick="toggleMascot()">主角 猫猫</button>
   <button class="hbtn" id="sndBtn" onclick="toggleSound()">声音 关</button>
 </header>
 
@@ -3424,7 +3423,7 @@ function ensureStateDefaults(){
   if(!state.diary) state.diary = {country:"", spots:[], persona:"tang", days:3, content:null, reveal:0};
   if(state.dreamCount === undefined) state.dreamCount = 0;
   if(!state.gallery) state.gallery = [];
-  if(!state.mascot) state.mascot = 'cat';
+  state.mascot = 'cat';
   renderMascotBtn();
 }
 function renderMascotBtn(){
